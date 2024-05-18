@@ -1,0 +1,38 @@
+version: "3.8"
+services:
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - '80:3000'
+    volumes:
+      - 'grafana_storage:/var/lib/grafana'
+      - type: bind
+        source: "."
+        target: "/home/"
+        read_only: true
+    environment:
+      - GF_PLUGIN_ALLOW_LOCAL_MODE=true
+
+  mysql:
+    image: mysql:8.0.37-debian
+    container_name: mysql
+    ports:
+      - '127.0.0.1:3306:3306'
+    environment:
+      MYSQL_DATABASE: 'test'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'hoge'
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      TZ: 'Asia/Tokyo'
+    volumes:
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      # MySQLでマルチバイトを扱う設定
+      - ./mysql.cnf:/etc/mysql/conf.d/mysql.cnf
+      #ここにデータ永続化するためのファイルが入る。
+      - ./mysql/db:/var/lib/mysql
+
+
+volumes:
+  grafana_storage: {}
